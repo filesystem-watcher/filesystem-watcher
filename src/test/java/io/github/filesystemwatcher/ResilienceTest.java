@@ -1,13 +1,12 @@
 package io.github.filesystemwatcher;
 
+import io.github.filesystemwatcher.utilities.AwaitilityUtils;
 import io.github.filesystemwatcher.utilities.FilesystemUtils;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,8 +17,6 @@ import static io.github.filesystemwatcher.FilesystemConstraints.FileType.REGULAR
 import static io.github.filesystemwatcher.FilesystemEventType.CREATED;
 
 class ResilienceTest {
-
-    private static final Duration WAIT_TIME = Duration.ofSeconds(30);
 
     private FilesystemNotifier monitor;
 
@@ -46,7 +43,7 @@ class ResilienceTest {
         Path sentinel = FilesystemUtils.createFile(temporaryDirectory, "sentinel.txt");
 
         //then
-        awaitEvent(receivedEvents, FilesystemEvent.of(sentinel, CREATED));
+        AwaitilityUtils.awaitForElement(receivedEvents, FilesystemEvent.of(sentinel, CREATED));
     }
 
     @Test
@@ -63,11 +60,10 @@ class ResilienceTest {
 
         //when
         FilesystemUtils.createFile(temporaryDirectory, "first.txt");
-        Awaitility.await().atMost(WAIT_TIME).untilTrue(failed);
         Path second = FilesystemUtils.createFile(temporaryDirectory, "second.txt");
 
         //then
-        awaitEvent(receivedEvents, FilesystemEvent.of(second, CREATED));
+        AwaitilityUtils.awaitForElement(receivedEvents, FilesystemEvent.of(second, CREATED));
     }
 
     private void startMonitor(Path path, FilesystemConstraints constraints, Consumer<FilesystemEvent> consumer) throws InterruptedException {
@@ -80,9 +76,4 @@ class ResilienceTest {
         Thread.sleep(100);
     }
 
-    private static void awaitEvent(List<FilesystemEvent> receivedEvents, FilesystemEvent expectedEvent) {
-        Awaitility.await()
-                .atMost(WAIT_TIME)
-                .until(() -> receivedEvents.contains(expectedEvent));
-    }
 }
