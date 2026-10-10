@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/filesystem-watcher/filesystem-watcher.svg?branch=master)](https://travis-ci.org/filesystem-watcher/filesystem-watcher)
+[![CI](https://github.com/filesystem-watcher/filesystem-watcher/actions/workflows/ci.yml/badge.svg)](https://github.com/filesystem-watcher/filesystem-watcher/actions/workflows/ci.yml)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=filesystem-watcher&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=filesystem-watcher)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=filesystem-watcher&metric=coverage)](https://sonarcloud.io/dashboard?id=filesystem-watcher)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.filesystem-watcher/filesystem-watcher/badge.svg)](https://maven-badges.herokuapp.com/maven-central/cz.jirutka.rsql/rsql-parser)
