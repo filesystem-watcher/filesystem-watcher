@@ -46,7 +46,7 @@ public class FilesystemMonitor implements FilesystemNotifier {
 
         reader = FilesystemReader.builder()
                 .watchedPath(watchedPath)
-                .watchedConstraints(watchedConstraints)
+                .watchedConstraints(watchedConstraints.withoutFilters())
                 .watchedConsumer(this::consumeEvent)
                 .build();
 

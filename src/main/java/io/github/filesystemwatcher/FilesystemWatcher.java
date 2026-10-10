@@ -113,10 +113,7 @@ public class FilesystemWatcher implements FilesystemNotifier {
             }
 
             try {
-                FilesystemEvent filesystemEvent = FilesystemEvent.of(watchEvent, watchedDirectory);
-                if (watchedConstraints.test(filesystemEvent)) {
-                    blockingQueue.put(filesystemEvent);
-                }
+                blockingQueue.put(FilesystemEvent.of(watchEvent, watchedDirectory));
             } catch (RuntimeException e) {
                 log.error("Skipping event {} {} in {}", watchEvent.kind(), watchEvent.context(), watchedDirectory, e);
             }
@@ -150,10 +147,10 @@ public class FilesystemWatcher implements FilesystemNotifier {
                 if (CREATED == event.getEventType()) {
                     FilesystemReader.builder()
                             .watchedPath(path)
-                            .watchedConstraints(watchedConstraints)
+                            .watchedConstraints(watchedConstraints.withoutFilters())
                             .watchedConsumer(filesystemEvent -> {
                                 if (!watchedKeys.containsKey(filesystemEvent.getPath())) {
-                                    watchedConsumer.accept(FilesystemEvent.of(filesystemEvent.getPath(), CREATED));
+                                    deliver(FilesystemEvent.of(filesystemEvent.getPath(), CREATED));
                                 }
                             }).build()
                             .startWatching();
@@ -164,7 +161,13 @@ public class FilesystemWatcher implements FilesystemNotifier {
         }
         log.info("Consumed event: " + event);
 
-        watchedConsumer.accept(event);
+        deliver(event);
+    }
+
+    private void deliver(FilesystemEvent event) {
+        if (watchedConstraints.test(event)) {
+            watchedConsumer.accept(event);
+        }
     }
 
     @Value
