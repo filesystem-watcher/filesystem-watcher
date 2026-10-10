@@ -76,72 +76,95 @@ public class FilesystemWatcher implements FilesystemNotifier {
 
     private void produceEvents() {
         while (!Thread.currentThread().isInterrupted()) {
+            WatchKey watchedKey;
             try {
-                WatchKey watchedKey = watchableUtility.getWatchService().take();
-
-                log.info("Watched key: {}", watchedKey.watchable());
-
-                for (WatchEvent<?> watchEvent : watchedKey.pollEvents()) {
-                    if (Thread.currentThread().isInterrupted()) {
-                        return;
-                    }
-
-                    log.info("Watched event: {} {}", watchEvent.kind(), watchEvent.context());
-
-                    if (watchEvent.kind() == OVERFLOW) {
-                        log.error("OVERFLOW watchEvent occurred {} times. Operating system queue was overflowed. File events could be lost.", watchEvent.count());
-                        continue;
-                    }
-
-                    Path watchedDirectory = (Path) watchedKey.watchable();
-                    FilesystemEvent filesystemEvent = FilesystemEvent.of(watchEvent, watchedDirectory);
-
-                    if (!watchedConstraints.test(filesystemEvent)) {
-                        continue;
-                    }
-
-                    blockingQueue.put(filesystemEvent);
-                }
-                watchedKey.reset();
+                watchedKey = watchableUtility.getWatchService().take();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-            } catch (Exception e) {
-                log.error("", e);
+                return;
+            } catch (ClosedWatchServiceException e) {
+                return;
+            }
+
+            try {
+                produceKeyEvents(watchedKey);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                watchedKey.reset();
+            }
+        }
+    }
+
+    private void produceKeyEvents(WatchKey watchedKey) throws InterruptedException {
+        log.info("Watched key: {}", watchedKey.watchable());
+
+        Path watchedDirectory = (Path) watchedKey.watchable();
+        for (WatchEvent<?> watchEvent : watchedKey.pollEvents()) {
+            if (Thread.currentThread().isInterrupted()) {
+                return;
+            }
+
+            log.info("Watched event: {} {}", watchEvent.kind(), watchEvent.context());
+
+            if (watchEvent.kind() == OVERFLOW) {
+                log.error("OVERFLOW watchEvent occurred {} times. Operating system queue was overflowed. File events could be lost.", watchEvent.count());
+                continue;
+            }
+
+            try {
+                FilesystemEvent filesystemEvent = FilesystemEvent.of(watchEvent, watchedDirectory);
+                if (watchedConstraints.test(filesystemEvent)) {
+                    blockingQueue.put(filesystemEvent);
+                }
+            } catch (RuntimeException e) {
+                log.error("Skipping event {} {} in {}", watchEvent.kind(), watchEvent.context(), watchedDirectory, e);
             }
         }
     }
 
     private void consumeEvents() {
         while (!Thread.currentThread().isInterrupted()) {
+            FilesystemEvent event;
             try {
-                FilesystemEvent event = blockingQueue.take();
-                Path path = event.getPath();
-                if (List.of(CREATED, INITIAL).contains(event.getEventType())) {
-                    if (Files.isDirectory(path)) {
-                        startWatching(path);
-                        // TODO refactor
-                        if (CREATED == event.getEventType()) {
-                            FilesystemReader.builder()
-                                    .watchedPath(path)
-                                    .watchedConstraints(watchedConstraints)
-                                    .watchedConsumer(filesystemEvent -> {
-                                        if (!watchedKeys.containsKey(filesystemEvent.getPath())) {
-                                            watchedConsumer.accept(FilesystemEvent.of(filesystemEvent.getPath(), CREATED));
-                                        }
-                                    }).build()
-                                    .startWatching();
-                        }
-                    }
-                } else if (DELETED == event.getEventType()) {
-                    stopWatching(path);
-                }
-                log.info("Consumed event: " + event);
-
-                watchedConsumer.accept(event);
+                event = blockingQueue.take();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                return;
+            }
+
+            try {
+                consumeEvent(event);
+            } catch (RuntimeException e) {
+                log.error("Failed to consume event: {}", event, e);
             }
         }
+    }
+
+    private void consumeEvent(FilesystemEvent event) {
+        Path path = event.getPath();
+        if (List.of(CREATED, INITIAL).contains(event.getEventType())) {
+            if (Files.isDirectory(path)) {
+                startWatching(path);
+                // TODO refactor
+                if (CREATED == event.getEventType()) {
+                    FilesystemReader.builder()
+                            .watchedPath(path)
+                            .watchedConstraints(watchedConstraints)
+                            .watchedConsumer(filesystemEvent -> {
+                                if (!watchedKeys.containsKey(filesystemEvent.getPath())) {
+                                    watchedConsumer.accept(FilesystemEvent.of(filesystemEvent.getPath(), CREATED));
+                                }
+                            }).build()
+                            .startWatching();
+                }
+            }
+        } else if (DELETED == event.getEventType()) {
+            stopWatching(path);
+        }
+        log.info("Consumed event: " + event);
+
+        watchedConsumer.accept(event);
     }
 
     @Value
