@@ -69,6 +69,10 @@ public class FilesystemConstraints implements Predicate<FilesystemEvent> {
         return true;
     }
 
+    FilesystemConstraints withoutFilters() {
+        return DEFAULT.withRecursive(isRecursive);
+    }
+
     private BasicFileAttributes readAttributes(Path path) {
         try {
             return Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
