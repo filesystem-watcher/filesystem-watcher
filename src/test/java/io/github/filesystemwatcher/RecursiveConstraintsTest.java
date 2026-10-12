@@ -21,7 +21,7 @@ class RecursiveConstraintsTest {
 
     @ParameterizedTest
     @MethodSource
-    void shouldWatchSubdirectoriesExcludedByConstraints(FilesystemConstraints constraints, @TempDir Path directory) throws InterruptedException {
+    void shouldWatchSubdirectoriesExcludedByConstraints(FilesystemConstraints constraints, @TempDir Path directory) {
         //given
         Path existingDirectory = FilesystemUtils.createDirectory(directory, "existing");
         List<FilesystemEvent> receivedEvents = Collections.synchronizedList(new ArrayList<>());
@@ -34,9 +34,7 @@ class RecursiveConstraintsTest {
 
         try {
             //when
-            Thread.sleep(100);
             Path createdDirectory = FilesystemUtils.createDirectory(directory, "created");
-            Thread.sleep(100);
             Path existingDirectoryFile = FilesystemUtils.createFile(existingDirectory, "file.txt");
             Path createdDirectoryFile = FilesystemUtils.createFile(createdDirectory, "file.txt");
 
@@ -45,8 +43,8 @@ class RecursiveConstraintsTest {
                     FilesystemEvent.of(existingDirectoryFile, CREATED),
                     FilesystemEvent.of(createdDirectoryFile, CREATED)
             );
-            AwaitilityUtils.awaitForSize(receivedEvents, expectedEvents.size());
-            Assertions.assertThat(receivedEvents).containsExactlyInAnyOrderElementsOf(expectedEvents);
+            expectedEvents.forEach(event -> AwaitilityUtils.awaitForElement(receivedEvents, event));
+            Assertions.assertThat(receivedEvents).hasSameElementsAs(expectedEvents);
         } finally {
             monitor.stopWatching();
         }

@@ -4,7 +4,9 @@ import io.github.filesystemwatcher.threads.FilesystemMonitorThreadFactory;
 import io.github.filesystemwatcher.threads.LoggingExecutorService;
 import lombok.Builder;
 import lombok.experimental.NonFinal;
+import lombok.extern.slf4j.Slf4j;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -12,6 +14,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
+@Slf4j
 @Builder
 public class FilesystemMonitor implements FilesystemNotifier {
 
@@ -28,7 +31,7 @@ public class FilesystemMonitor implements FilesystemNotifier {
     ));
 
     @NonFinal
-    private FilesystemNotifier watcher;
+    private FilesystemWatcher watcher;
     @NonFinal
     private FilesystemNotifier reader;
 
@@ -61,6 +64,15 @@ public class FilesystemMonitor implements FilesystemNotifier {
     }
 
     private void consumeEvent(FilesystemEvent event) {
+        Path path = event.getPath();
+        if (Files.isDirectory(path)) {
+            try {
+                watcher.startWatching(path);
+            } catch (RuntimeException e) {
+                log.error("Failed to watch directory: {}", path, e);
+            }
+        }
+
         try {
             queue.put(event);
         } catch (InterruptedException e) {
