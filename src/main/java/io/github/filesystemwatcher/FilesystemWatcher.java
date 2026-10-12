@@ -1,7 +1,6 @@
 package io.github.filesystemwatcher;
 
 import com.sun.nio.file.SensitivityWatchEventModifier;
-import io.vavr.collection.List;
 import io.vavr.control.Try;
 import lombok.Builder;
 import lombok.Value;
@@ -59,7 +58,7 @@ public class FilesystemWatcher implements FilesystemNotifier {
         }
     }
 
-    private void startWatching(Path path) {
+    void startWatching(Path path) {
         WatchKey key = watchableUtility.registerWatchable(path);
         watchedKeys.putIfAbsent(path, key);
         log.info("Watching started: {}", path);
@@ -140,22 +139,18 @@ public class FilesystemWatcher implements FilesystemNotifier {
 
     private void consumeEvent(FilesystemEvent event) {
         Path path = event.getPath();
-        if (List.of(CREATED, INITIAL).contains(event.getEventType())) {
-            if (Files.isDirectory(path)) {
-                startWatching(path);
-                // TODO refactor
-                if (CREATED == event.getEventType()) {
-                    FilesystemReader.builder()
-                            .watchedPath(path)
-                            .watchedConstraints(watchedConstraints.withoutFilters())
-                            .watchedConsumer(filesystemEvent -> {
-                                if (!watchedKeys.containsKey(filesystemEvent.getPath())) {
-                                    deliver(FilesystemEvent.of(filesystemEvent.getPath(), CREATED));
-                                }
-                            }).build()
-                            .startWatching();
-                }
-            }
+        if (CREATED == event.getEventType() && Files.isDirectory(path)) {
+            startWatching(path);
+            // TODO refactor
+            FilesystemReader.builder()
+                    .watchedPath(path)
+                    .watchedConstraints(watchedConstraints.withoutFilters())
+                    .watchedConsumer(filesystemEvent -> {
+                        if (!watchedKeys.containsKey(filesystemEvent.getPath())) {
+                            deliver(FilesystemEvent.of(filesystemEvent.getPath(), CREATED));
+                        }
+                    }).build()
+                    .startWatching();
         } else if (DELETED == event.getEventType()) {
             stopWatching(path);
         }

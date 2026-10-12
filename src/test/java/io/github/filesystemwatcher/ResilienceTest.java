@@ -28,7 +28,7 @@ class ResilienceTest {
     }
 
     @Test
-    void shouldKeepWatchingDirectoryWhenFileDisappearsBeforeItsEventIsProcessed(@TempDir Path temporaryDirectory) throws InterruptedException {
+    void shouldKeepWatchingDirectoryWhenFileDisappearsBeforeItsEventIsProcessed(@TempDir Path temporaryDirectory) {
         //given
         List<FilesystemEvent> receivedEvents = Collections.synchronizedList(new ArrayList<>());
         startMonitor(temporaryDirectory, FilesystemConstraints.DEFAULT.withFileTypes(List.of(REGULAR)), receivedEvents::add);
@@ -39,7 +39,6 @@ class ResilienceTest {
             transientFiles.add(FilesystemUtils.createFile(temporaryDirectory, "transient" + i + ".txt"));
         }
         transientFiles.forEach(FilesystemUtils::delete);
-        Thread.sleep(500);
         Path sentinel = FilesystemUtils.createFile(temporaryDirectory, "sentinel.txt");
 
         //then
@@ -47,7 +46,7 @@ class ResilienceTest {
     }
 
     @Test
-    void shouldKeepDeliveringEventsWhenConsumerThrows(@TempDir Path temporaryDirectory) throws InterruptedException {
+    void shouldKeepDeliveringEventsWhenConsumerThrows(@TempDir Path temporaryDirectory) {
         //given
         List<FilesystemEvent> receivedEvents = Collections.synchronizedList(new ArrayList<>());
         AtomicBoolean failed = new AtomicBoolean();
@@ -66,14 +65,13 @@ class ResilienceTest {
         AwaitilityUtils.awaitForElement(receivedEvents, FilesystemEvent.of(second, CREATED));
     }
 
-    private void startMonitor(Path path, FilesystemConstraints constraints, Consumer<FilesystemEvent> consumer) throws InterruptedException {
+    private void startMonitor(Path path, FilesystemConstraints constraints, Consumer<FilesystemEvent> consumer) {
         monitor = FilesystemMonitor.builder()
                 .watchedPath(path)
                 .watchedConstraints(constraints)
                 .watchedConsumer(consumer)
                 .build();
         monitor.startWatching();
-        Thread.sleep(100);
     }
 
 }
