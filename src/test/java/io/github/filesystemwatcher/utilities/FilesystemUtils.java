@@ -24,6 +24,10 @@ public class FilesystemUtils {
         return TryIO.with(() -> Files.createDirectory(path.resolve(name)));
     }
 
+    public static Path createDirectories(Path path) {
+        return TryIO.with(() -> Files.createDirectories(path));
+    }
+
     public static Path createFile(Path path, String name) {
         return TryIO.with(() -> Files.createFile(path.resolve(name)));
     }

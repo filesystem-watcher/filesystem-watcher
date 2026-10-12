@@ -7,14 +7,21 @@ import lombok.Value;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.*;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.github.filesystemwatcher.FilesystemEventType.*;
 import static java.nio.file.StandardWatchEventKinds.*;
@@ -34,6 +41,8 @@ public class FilesystemWatcher implements FilesystemNotifier {
     private final ExecutorService consumersExecutor;
 
     private final Map<Path, WatchKey> watchedKeys = new ConcurrentHashMap<>();
+    // Paths already reported by listing a created directory; their own CREATED events are skipped.
+    private final Set<Path> listedPaths = new HashSet<>();
 
     @NonFinal
     private Future<?> consumer;
@@ -139,24 +148,46 @@ public class FilesystemWatcher implements FilesystemNotifier {
 
     private void consumeEvent(FilesystemEvent event) {
         Path path = event.getPath();
-        if (CREATED == event.getEventType() && watchedConstraints.isRecursive() && Files.isDirectory(path)) {
-            startWatching(path);
-            // TODO refactor
-            FilesystemReader.builder()
-                    .watchedPath(path)
-                    .watchedConstraints(watchedConstraints.withoutFilters())
-                    .watchedConsumer(filesystemEvent -> {
-                        if (!watchedKeys.containsKey(filesystemEvent.getPath())) {
-                            deliver(FilesystemEvent.of(filesystemEvent.getPath(), CREATED));
-                        }
-                    }).build()
-                    .startWatching();
-        } else if (DELETED == event.getEventType()) {
-            stopWatching(path);
-        }
         log.info("Consumed event: " + event);
 
+        if (CREATED == event.getEventType()) {
+            if (!listedPaths.remove(path)) {
+                consumeCreated(path);
+            }
+            return;
+        }
+        if (DELETED == event.getEventType()) {
+            listedPaths.remove(path);
+            stopWatching(path);
+        }
         deliver(event);
+    }
+
+    private void consumeCreated(Path path) {
+        boolean watchable = watchedConstraints.isRecursive() && Files.isDirectory(path);
+        if (watchable) {
+            startWatching(path);
+        }
+        deliver(FilesystemEvent.of(path, CREATED));
+
+        if (watchable && !Files.isSymbolicLink(path)) {
+            for (Path child : listChildren(path)) {
+                listedPaths.add(child);
+                try {
+                    consumeCreated(child);
+                } catch (RuntimeException e) {
+                    log.error("Failed to consume created path: {}", child, e);
+                }
+            }
+        }
+    }
+
+    private static List<Path> listChildren(Path directory) {
+        try (Stream<Path> children = Files.list(directory)) {
+            return children.collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private void deliver(FilesystemEvent event) {
