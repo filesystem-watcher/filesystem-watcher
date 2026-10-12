@@ -2,7 +2,6 @@ package io.github.filesystemwatcher;
 
 import io.github.filesystemwatcher.utilities.AwaitilityUtils;
 import io.github.filesystemwatcher.utilities.FilesystemUtils;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -11,21 +10,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 import static io.github.filesystemwatcher.FilesystemConstraints.FileType.REGULAR;
 import static io.github.filesystemwatcher.FilesystemEventType.CREATED;
 
-class ResilienceTest {
-
-    private FilesystemNotifier monitor;
-
-    @AfterEach
-    void stopMonitor() {
-        if (monitor != null) {
-            monitor.stopWatching();
-        }
-    }
+class ResilienceTest extends AbstractMonitorTest {
 
     @Test
     void shouldKeepWatchingDirectoryWhenFileDisappearsBeforeItsEventIsProcessed(@TempDir Path temporaryDirectory) {
@@ -64,14 +53,4 @@ class ResilienceTest {
         //then
         AwaitilityUtils.awaitForElement(receivedEvents, FilesystemEvent.of(second, CREATED));
     }
-
-    private void startMonitor(Path path, FilesystemConstraints constraints, Consumer<FilesystemEvent> consumer) {
-        monitor = FilesystemMonitor.builder()
-                .watchedPath(path)
-                .watchedConstraints(constraints)
-                .watchedConsumer(consumer)
-                .build();
-        monitor.startWatching();
-    }
-
 }

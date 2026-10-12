@@ -65,7 +65,7 @@ public class FilesystemMonitor implements FilesystemNotifier {
 
     private void consumeEvent(FilesystemEvent event) {
         Path path = event.getPath();
-        if (Files.isDirectory(path)) {
+        if (watchedConstraints.isRecursive() && Files.isDirectory(path)) {
             try {
                 watcher.startWatching(path);
             } catch (RuntimeException e) {
