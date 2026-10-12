@@ -139,7 +139,7 @@ public class FilesystemWatcher implements FilesystemNotifier {
 
     private void consumeEvent(FilesystemEvent event) {
         Path path = event.getPath();
-        if (CREATED == event.getEventType() && Files.isDirectory(path)) {
+        if (CREATED == event.getEventType() && watchedConstraints.isRecursive() && Files.isDirectory(path)) {
             startWatching(path);
             // TODO refactor
             FilesystemReader.builder()
