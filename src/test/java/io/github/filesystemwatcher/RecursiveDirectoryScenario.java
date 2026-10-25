@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -20,9 +21,9 @@ enum RecursiveDirectoryScenario implements Scenario {
     RECURSIVE_DIRECTORY_CREATE(RecursiveDirectoryScenario::create, WatchImplementation.all()),
     RECURSIVE_DIRECTORY_DELETE(RecursiveDirectoryScenario::delete, WatchImplementation.all()),
     RECURSIVE_DIRECTORY_RENAME(RecursiveDirectoryScenario::rename, WatchImplementation.all()),
-    RECURSIVE_DIRECTORY_ADD_POSIX_PERMISSIONS(RecursiveDirectoryScenario::addPermissions, List.of(WatchImplementation.NATIVE)),
-    RECURSIVE_DIRECTORY_REMOVE_POSIX_PERMISSIONS(RecursiveDirectoryScenario::removePermissions, List.of(WatchImplementation.NATIVE)),
-    RECURSIVE_DIRECTORY_SET_SAME_PERMISSIONS(RecursiveDirectoryScenario::setSamePermissions, List.of(WatchImplementation.NATIVE));
+    RECURSIVE_DIRECTORY_ADD_POSIX_PERMISSIONS(RecursiveDirectoryScenario::addPermissions, Arrays.asList(WatchImplementation.NATIVE)),
+    RECURSIVE_DIRECTORY_REMOVE_POSIX_PERMISSIONS(RecursiveDirectoryScenario::removePermissions, Arrays.asList(WatchImplementation.NATIVE)),
+    RECURSIVE_DIRECTORY_SET_SAME_PERMISSIONS(RecursiveDirectoryScenario::setSamePermissions, Arrays.asList(WatchImplementation.NATIVE));
 
     private final Scenario scenario;
     @Getter
@@ -43,7 +44,7 @@ enum RecursiveDirectoryScenario implements Scenario {
         Path recursiveDirectory = FilesystemUtils.createFile(third, "recursive");
 
 
-        List<FilesystemEvent> initial = new ArrayList<>(List.of(
+        List<FilesystemEvent> initial = new ArrayList<>(Arrays.asList(
                 FilesystemEvent.of(first, INITIAL),
                 FilesystemEvent.of(second, INITIAL),
                 FilesystemEvent.of(third, INITIAL)));
@@ -65,7 +66,7 @@ enum RecursiveDirectoryScenario implements Scenario {
 
         FilesystemUtils.delete(recursiveDirectory);
 
-        List<FilesystemEvent> initial = new ArrayList<>(List.of(
+        List<FilesystemEvent> initial = new ArrayList<>(Arrays.asList(
                 FilesystemEvent.of(first, INITIAL),
                 FilesystemEvent.of(second, INITIAL),
                 FilesystemEvent.of(third, INITIAL),
@@ -90,7 +91,7 @@ enum RecursiveDirectoryScenario implements Scenario {
 
         Path moved = FilesystemUtils.move(recursiveDirectory, third.resolve("moved"));
 
-        List<FilesystemEvent> initial = new ArrayList<>(List.of(
+        List<FilesystemEvent> initial = new ArrayList<>(Arrays.asList(
                 FilesystemEvent.of(first, INITIAL),
                 FilesystemEvent.of(second, INITIAL),
                 FilesystemEvent.of(third, INITIAL),
@@ -114,7 +115,7 @@ enum RecursiveDirectoryScenario implements Scenario {
         Set<PosixFilePermission> permissions = FilesystemUtils.getPosixFilePermissions(recursiveDirectory);
         permissions.add(PosixFilePermission.OTHERS_EXECUTE);
         FilesystemUtils.setPosixFilePermissions(recursiveDirectory, permissions);
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(first, INITIAL),
                 FilesystemEvent.of(second, INITIAL),
                 FilesystemEvent.of(third, INITIAL),
@@ -137,7 +138,7 @@ enum RecursiveDirectoryScenario implements Scenario {
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Cannot remove POSIX attribute, because given path=%s have all them set to false", recursiveDirectory)));
         permissions.remove(toRemove);
         FilesystemUtils.setPosixFilePermissions(recursiveDirectory, permissions);
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(first, INITIAL),
                 FilesystemEvent.of(second, INITIAL),
                 FilesystemEvent.of(third, INITIAL),
@@ -156,7 +157,7 @@ enum RecursiveDirectoryScenario implements Scenario {
         Set<PosixFilePermission> permissions = FilesystemUtils.getPosixFilePermissions(recursiveDirectory);
         FilesystemUtils.setPosixFilePermissions(recursiveDirectory, permissions);
 
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(first, INITIAL),
                 FilesystemEvent.of(second, INITIAL),
                 FilesystemEvent.of(third, INITIAL),

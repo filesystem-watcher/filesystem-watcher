@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -20,9 +21,9 @@ enum RecursiveFileScenario implements Scenario {
     RECURSIVE_FILE_CREATE(RecursiveFileScenario::create, WatchImplementation.all()),
     RECURSIVE_FILE_DELETE(RecursiveFileScenario::delete, WatchImplementation.all()),
     RECURSIVE_FILE_RENAME(RecursiveFileScenario::rename, WatchImplementation.all()),
-    RECURSIVE_FILE_ADD_POSIX_PERMISSIONS(RecursiveFileScenario::addPermissions, List.of(WatchImplementation.NATIVE)),
-    RECURSIVE_FILE_REMOVE_POSIX_PERMISSIONS(RecursiveFileScenario::removePermissions, List.of(WatchImplementation.NATIVE)),
-    RECURSIVE_FILE_SET_SAME_PERMISSIONS(RecursiveFileScenario::setSamePermissions, List.of(WatchImplementation.NATIVE));
+    RECURSIVE_FILE_ADD_POSIX_PERMISSIONS(RecursiveFileScenario::addPermissions, Arrays.asList(WatchImplementation.NATIVE)),
+    RECURSIVE_FILE_REMOVE_POSIX_PERMISSIONS(RecursiveFileScenario::removePermissions, Arrays.asList(WatchImplementation.NATIVE)),
+    RECURSIVE_FILE_SET_SAME_PERMISSIONS(RecursiveFileScenario::setSamePermissions, Arrays.asList(WatchImplementation.NATIVE));
 
     private final Scenario scenario;
     @Getter
@@ -42,7 +43,7 @@ enum RecursiveFileScenario implements Scenario {
 
         Path createdFile = FilesystemUtils.createFile(third, "test.txt");
 
-        List<FilesystemEvent> initial = new ArrayList<>(List.of(
+        List<FilesystemEvent> initial = new ArrayList<>(Arrays.asList(
                 FilesystemEvent.of(first, INITIAL),
                 FilesystemEvent.of(second, INITIAL),
                 FilesystemEvent.of(third, INITIAL)));
@@ -63,7 +64,7 @@ enum RecursiveFileScenario implements Scenario {
         coordinator.setupCompleted();
 
         FilesystemUtils.delete(file);
-        List<FilesystemEvent> initial = new ArrayList<>(List.of(
+        List<FilesystemEvent> initial = new ArrayList<>(Arrays.asList(
                 FilesystemEvent.of(first, INITIAL),
                 FilesystemEvent.of(second, INITIAL),
                 FilesystemEvent.of(third, INITIAL),
@@ -86,7 +87,7 @@ enum RecursiveFileScenario implements Scenario {
 
         Path moved = FilesystemUtils.move(file, base.resolve("moved.txt"));
 
-        List<FilesystemEvent> initial = new ArrayList<>(List.of(
+        List<FilesystemEvent> initial = new ArrayList<>(Arrays.asList(
                 FilesystemEvent.of(first, INITIAL),
                 FilesystemEvent.of(second, INITIAL),
                 FilesystemEvent.of(third, INITIAL),
@@ -111,7 +112,7 @@ enum RecursiveFileScenario implements Scenario {
         Set<PosixFilePermission> permissions = FilesystemUtils.getPosixFilePermissions(file);
         permissions.add(PosixFilePermission.OTHERS_EXECUTE);
         FilesystemUtils.setPosixFilePermissions(file, permissions);
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(first, INITIAL),
                 FilesystemEvent.of(second, INITIAL),
                 FilesystemEvent.of(third, INITIAL),
@@ -135,7 +136,7 @@ enum RecursiveFileScenario implements Scenario {
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Cannot remove POSIX attribute, because given path=%s have all them set to false", file)));
         permissions.remove(toRemove);
         FilesystemUtils.setPosixFilePermissions(file, permissions);
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(first, INITIAL),
                 FilesystemEvent.of(second, INITIAL),
                 FilesystemEvent.of(third, INITIAL),
@@ -154,7 +155,7 @@ enum RecursiveFileScenario implements Scenario {
         Set<PosixFilePermission> permissions = FilesystemUtils.getPosixFilePermissions(file);
         FilesystemUtils.setPosixFilePermissions(file, permissions);
 
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(first, INITIAL),
                 FilesystemEvent.of(second, INITIAL),
                 FilesystemEvent.of(third, INITIAL),

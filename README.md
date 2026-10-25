@@ -10,13 +10,13 @@ and `FileVisitor` (handles directories that change while they are read).
 
 ## Getting Started
 
-Requires Java 11 or newer. Add the dependency:
+Requires Java 8 or newer. Add the dependency:
 
 ```xml
 <dependency>
     <groupId>io.github.filesystem-watcher</groupId>
     <artifactId>filesystem-watcher</artifactId>
-    <version>0.4.0</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
@@ -37,14 +37,19 @@ monitor.stopWatching();
 Existing files are reported first as `INITIAL`, then changes as `CREATED`, `MODIFIED` and `DELETED`.
 Constraints are optional and can filter by file name, pattern or file type.
 
+On macOS with Java 8, file times have one-second precision, so a change made within the same second
+as the previous one may not be reported as `MODIFIED`. Java 10 and newer don't have this limit.
+
 ## Releasing
 
 Push a tag `vX.Y.Z`. GitHub Actions publishes version `X.Y.Z` to Maven Central.
 
 ## Changelog
 
-### Unreleased
+### 1.0.0
+1. Runs on Java 8 and newer. This is the last release supporting Java 8.
 1. Builds on JDK 17 and newer. The only runtime dependency is `slf4j-api`.
+1. No compile-time use of internal JDK API (`com.sun.nio.file`).
 1. Per-event log messages moved to `debug`.
 1. `watchedConstraints` is optional and defaults to `FilesystemConstraints.DEFAULT`.
 

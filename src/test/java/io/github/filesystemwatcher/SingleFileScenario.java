@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -19,10 +20,10 @@ enum SingleFileScenario implements Scenario {
 
     FILE_CREATE(SingleFileScenario::createFile, WatchImplementation.all()),
     FILE_DELETE(SingleFileScenario::deleteFile, WatchImplementation.all()),
-    FILE_MODIFY_CONTENT(SingleFileScenario::modifyFileContent, List.of(WatchImplementation.NATIVE)),
-    FILE_ADD_POSIX_PERMISSIONS(SingleFileScenario::addPermissions, List.of(WatchImplementation.NATIVE)),
-    FILE_REMOVE_POSIX_PERMISSIONS(SingleFileScenario::removePermissions, List.of(WatchImplementation.NATIVE)),
-    FILE_SET_SAME_PERMISSIONS(SingleFileScenario::setSamePermissions, List.of(WatchImplementation.NATIVE));
+    FILE_MODIFY_CONTENT(SingleFileScenario::modifyFileContent, Arrays.asList(WatchImplementation.NATIVE)),
+    FILE_ADD_POSIX_PERMISSIONS(SingleFileScenario::addPermissions, Arrays.asList(WatchImplementation.NATIVE)),
+    FILE_REMOVE_POSIX_PERMISSIONS(SingleFileScenario::removePermissions, Arrays.asList(WatchImplementation.NATIVE)),
+    FILE_SET_SAME_PERMISSIONS(SingleFileScenario::setSamePermissions, Arrays.asList(WatchImplementation.NATIVE));
 
     private final Scenario scenario;
     @Getter
@@ -37,7 +38,7 @@ enum SingleFileScenario implements Scenario {
         coordinator.setupCompleted();
 
         Path createdFile = FilesystemUtils.createFile(base, "test.txt");
-        return List.of(FilesystemEvent.of(createdFile, CREATED));
+        return Arrays.asList(FilesystemEvent.of(createdFile, CREATED));
     }
 
     private static List<FilesystemEvent> deleteFile(Path base, WatchCoordinator coordinator) {
@@ -46,7 +47,7 @@ enum SingleFileScenario implements Scenario {
         coordinator.setupCompleted();
 
         FilesystemUtils.delete(createdFile);
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(createdFile, INITIAL),
                 FilesystemEvent.of(createdFile, DELETED)
         );
@@ -58,7 +59,7 @@ enum SingleFileScenario implements Scenario {
 
         FilesystemUtils.writeFile(createdFile, "Hello");
 
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(createdFile, INITIAL),
                 FilesystemEvent.of(createdFile, MODIFIED)
         );
@@ -71,7 +72,7 @@ enum SingleFileScenario implements Scenario {
         Set<PosixFilePermission> permissions = FilesystemUtils.getPosixFilePermissions(createdFile);
         permissions.add(PosixFilePermission.OTHERS_EXECUTE);
         FilesystemUtils.setPosixFilePermissions(createdFile, permissions);
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(createdFile, INITIAL),
                 FilesystemEvent.of(createdFile, MODIFIED)
         );
@@ -88,7 +89,7 @@ enum SingleFileScenario implements Scenario {
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Cannot remove POSIX attribute, because given path=%s have all them set to false", createdFile)));
         permissions.remove(toRemove);
         FilesystemUtils.setPosixFilePermissions(createdFile, permissions);
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(createdFile, INITIAL),
                 FilesystemEvent.of(createdFile, MODIFIED)
         );
@@ -101,7 +102,7 @@ enum SingleFileScenario implements Scenario {
         Set<PosixFilePermission> permissions = FilesystemUtils.getPosixFilePermissions(createdFile);
         FilesystemUtils.setPosixFilePermissions(createdFile, permissions);
 
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(createdFile, INITIAL),
                 FilesystemEvent.of(createdFile, MODIFIED)
         );

@@ -45,9 +45,19 @@ class WatchingTest {
         coordinator.watcherCompleted();
 
         //then
-        List<FilesystemEvent> filesystemEvents = futureEvents.get();
-        AwaitilityUtils.awaitForSize(receivedEvents, filesystemEvents.size());
-        Assertions.assertThat(withoutRepeatedModifications(receivedEvents)).containsExactlyInAnyOrderElementsOf(filesystemEvents);
+        List<FilesystemEvent> filesystemEvents = withoutUndetectableModifications(futureEvents.get());
+        filesystemEvents.forEach(event -> AwaitilityUtils.awaitForElement(receivedEvents, event));
+        Assertions.assertThat(withoutUndetectableModifications(withoutRepeatedModifications(receivedEvents)))
+                .containsExactlyInAnyOrderElementsOf(filesystemEvents);
+    }
+
+    private static List<FilesystemEvent> withoutUndetectableModifications(List<FilesystemEvent> events) {
+        if (WatchImplementation.detectsModificationsWithinSecond()) {
+            return events;
+        }
+        return events.stream()
+                .filter(event -> event.getEventType() != MODIFIED)
+                .collect(Collectors.toList());
     }
 
     // One write can be reported as one or more modifications, depending on timing.

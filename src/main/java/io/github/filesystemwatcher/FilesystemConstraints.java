@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -33,9 +34,9 @@ public class FilesystemConstraints implements Predicate<FilesystemEvent> {
     }
 
     public static final FilesystemConstraints DEFAULT = FilesystemConstraints.builder().build()
-            .withFilenamePatterns(List.of())
-            .withFilenameSubstrings(List.of())
-            .withFileTypes(List.of())
+            .withFilenamePatterns(Collections.emptyList())
+            .withFilenameSubstrings(Collections.emptyList())
+            .withFileTypes(Collections.emptyList())
             .withRecursive(false);
 
     private final List<String> filenameSubstrings;
