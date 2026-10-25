@@ -4,6 +4,7 @@ import io.github.filesystemwatcher.utilities.AwaitilityUtils;
 import io.github.filesystemwatcher.utilities.FilesystemUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -11,6 +12,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -141,5 +143,21 @@ class ConstraintsTest {
 		);
 	}
 
+	@Test
+	void shouldUseDefaultConstraintsWhenNoneAreGiven(@TempDir Path directory) {
+		Path file = FilesystemUtils.createFile(directory, "file.txt");
+		List<FilesystemEvent> receivedEvents = Collections.synchronizedList(new ArrayList<>());
 
+		FilesystemMonitor monitor = FilesystemMonitor.builder()
+				.watchedPath(directory)
+				.watchedConsumer(receivedEvents::add)
+				.build();
+
+		monitor.startWatching();
+		try {
+			AwaitilityUtils.awaitForElement(receivedEvents, FilesystemEvent.of(file, FilesystemEventType.INITIAL));
+		} finally {
+			monitor.stopWatching();
+		}
+	}
 }

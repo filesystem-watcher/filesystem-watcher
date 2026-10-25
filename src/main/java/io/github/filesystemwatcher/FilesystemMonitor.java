@@ -20,7 +20,8 @@ public class FilesystemMonitor implements FilesystemNotifier {
 
     private final Path watchedPath;
     private final Consumer<FilesystemEvent> watchedConsumer;
-    private final FilesystemConstraints watchedConstraints;
+    @Builder.Default
+    private final FilesystemConstraints watchedConstraints = FilesystemConstraints.DEFAULT;
 
     private final BlockingQueue<FilesystemEvent> queue = new ArrayBlockingQueue<>(100000);
     private final ExecutorService producersExecutor = new LoggingExecutorService(Executors.newSingleThreadExecutor(
