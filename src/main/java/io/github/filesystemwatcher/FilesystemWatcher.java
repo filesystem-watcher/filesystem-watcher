@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ public class FilesystemWatcher implements FilesystemNotifier {
     private final ExecutorService consumersExecutor;
 
     private final Map<Path, WatchKey> watchedKeys = new ConcurrentHashMap<>();
+    private final Map<Object, Path> watchedDirectoriesByFileKey = new ConcurrentHashMap<>();
     // Paths already reported by listing a created directory; their own CREATED events are skipped.
     private final Set<Path> listedPaths = new HashSet<>();
 
@@ -65,9 +67,33 @@ public class FilesystemWatcher implements FilesystemNotifier {
     }
 
     void startWatching(Path path) {
+        stopWatchingPreviousLocationOfMovedDirectory(path);
         WatchKey key = watchableUtility.registerWatchable(path);
         watchedKeys.putIfAbsent(path, key);
         log.debug("Watching started: {}", path);
+    }
+
+    private void stopWatchingPreviousLocationOfMovedDirectory(Path path) {
+        Object fileKey = fileKey(path);
+        if (fileKey == null) {
+            return;
+        }
+        Path previousLocation = watchedDirectoriesByFileKey.get(fileKey);
+        if (previousLocation != null && !previousLocation.equals(path)) {
+            if (fileKey.equals(fileKey(previousLocation))) {
+                return;
+            }
+            stopWatching(previousLocation);
+        }
+        watchedDirectoriesByFileKey.put(fileKey, path);
+    }
+
+    private static Object fileKey(Path path) {
+        try {
+            return Files.readAttributes(path, BasicFileAttributes.class).fileKey();
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     private void stopWatching(Path path) {
@@ -76,6 +102,7 @@ public class FilesystemWatcher implements FilesystemNotifier {
             key.cancel();
         }
         watchedKeys.remove(path);
+        watchedDirectoriesByFileKey.values().remove(path);
         log.debug("Watching stopped: {}", path);
     }
 
