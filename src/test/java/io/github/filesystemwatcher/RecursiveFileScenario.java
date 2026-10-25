@@ -21,9 +21,9 @@ enum RecursiveFileScenario implements Scenario {
     RECURSIVE_FILE_CREATE(RecursiveFileScenario::create, WatchImplementation.all()),
     RECURSIVE_FILE_DELETE(RecursiveFileScenario::delete, WatchImplementation.all()),
     RECURSIVE_FILE_RENAME(RecursiveFileScenario::rename, WatchImplementation.all()),
-    RECURSIVE_FILE_ADD_POSIX_PERMISSIONS(RecursiveFileScenario::addPermissions, Arrays.asList(WatchImplementation.NATIVE)),
-    RECURSIVE_FILE_REMOVE_POSIX_PERMISSIONS(RecursiveFileScenario::removePermissions, Arrays.asList(WatchImplementation.NATIVE)),
-    RECURSIVE_FILE_SET_SAME_PERMISSIONS(RecursiveFileScenario::setSamePermissions, Arrays.asList(WatchImplementation.NATIVE));
+    RECURSIVE_FILE_ADD_POSIX_PERMISSIONS(RecursiveFileScenario::addPermissions, WatchImplementation.nativeWithPosixPermissions()),
+    RECURSIVE_FILE_REMOVE_POSIX_PERMISSIONS(RecursiveFileScenario::removePermissions, WatchImplementation.nativeWithPosixPermissions()),
+    RECURSIVE_FILE_SET_SAME_PERMISSIONS(RecursiveFileScenario::setSamePermissions, WatchImplementation.nativeWithPosixPermissions());
 
     private final Scenario scenario;
     @Getter

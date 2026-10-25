@@ -21,9 +21,9 @@ enum SingleFileScenario implements Scenario {
     FILE_CREATE(SingleFileScenario::createFile, WatchImplementation.all()),
     FILE_DELETE(SingleFileScenario::deleteFile, WatchImplementation.all()),
     FILE_MODIFY_CONTENT(SingleFileScenario::modifyFileContent, Arrays.asList(WatchImplementation.NATIVE)),
-    FILE_ADD_POSIX_PERMISSIONS(SingleFileScenario::addPermissions, Arrays.asList(WatchImplementation.NATIVE)),
-    FILE_REMOVE_POSIX_PERMISSIONS(SingleFileScenario::removePermissions, Arrays.asList(WatchImplementation.NATIVE)),
-    FILE_SET_SAME_PERMISSIONS(SingleFileScenario::setSamePermissions, Arrays.asList(WatchImplementation.NATIVE));
+    FILE_ADD_POSIX_PERMISSIONS(SingleFileScenario::addPermissions, WatchImplementation.nativeWithPosixPermissions()),
+    FILE_REMOVE_POSIX_PERMISSIONS(SingleFileScenario::removePermissions, WatchImplementation.nativeWithPosixPermissions()),
+    FILE_SET_SAME_PERMISSIONS(SingleFileScenario::setSamePermissions, WatchImplementation.nativeWithPosixPermissions());
 
     private final Scenario scenario;
     @Getter
