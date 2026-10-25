@@ -193,9 +193,7 @@ public class FilesystemWatcher implements FilesystemNotifier {
         }
     }
 
-    // SensitivityWatchEventModifier.HIGH shortens polling (e.g. on macOS) from 10 to 2 seconds before JDK 17.
-    // It is internal API, ignored since JDK 21 and deprecated for removal, so it is looked up only if present.
-    static WatchEvent.Modifier[] sensitivityModifiers() {
+    static WatchEvent.Modifier[] fasterPollingOnOlderJdks() {
         try {
             Object high = Class.forName("com.sun.nio.file.SensitivityWatchEventModifier").getField("HIGH").get(null);
             return new WatchEvent.Modifier[]{(WatchEvent.Modifier) high};
@@ -207,7 +205,7 @@ public class FilesystemWatcher implements FilesystemNotifier {
     @Value
     private static class WatchableUtility {
         private static final WatchEvent.Kind[] ALL_EVENT_KINDS = new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW};
-        private static final WatchEvent.Modifier[] MODIFIERS = sensitivityModifiers();
+        private static final WatchEvent.Modifier[] FASTER_POLLING_ON_OLDER_JDKS = fasterPollingOnOlderJdks();
 
         private final WatchService watchService = createWatchService();
 
@@ -221,7 +219,7 @@ public class FilesystemWatcher implements FilesystemNotifier {
 
         private WatchKey registerWatchable(Watchable watchable) {
             try {
-                return watchable.register(watchService, ALL_EVENT_KINDS, MODIFIERS);
+                return watchable.register(watchService, ALL_EVENT_KINDS, FASTER_POLLING_ON_OLDER_JDKS);
             } catch (IOException e) {
                 throw new IllegalStateException("Cannot watch " + watchable, e);
             }
