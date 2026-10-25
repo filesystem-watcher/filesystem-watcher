@@ -13,11 +13,16 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static io.github.filesystemwatcher.FilesystemEventType.MODIFIED;
 
 class WatchingTest {
 
@@ -42,7 +47,17 @@ class WatchingTest {
         //then
         List<FilesystemEvent> filesystemEvents = futureEvents.get();
         AwaitilityUtils.awaitForSize(receivedEvents, filesystemEvents.size());
-        Assertions.assertThat(receivedEvents).containsExactlyInAnyOrderElementsOf(filesystemEvents);
+        Assertions.assertThat(withoutRepeatedModifications(receivedEvents)).containsExactlyInAnyOrderElementsOf(filesystemEvents);
+    }
+
+    // One write can be reported as one or more modifications, depending on timing.
+    private static List<FilesystemEvent> withoutRepeatedModifications(List<FilesystemEvent> events) {
+        Set<FilesystemEvent> modifications = new HashSet<>();
+        synchronized (events) {
+            return events.stream()
+                    .filter(event -> event.getEventType() != MODIFIED || modifications.add(event))
+                    .collect(Collectors.toList());
+        }
     }
 
     static Stream<Arguments> scenarios() {

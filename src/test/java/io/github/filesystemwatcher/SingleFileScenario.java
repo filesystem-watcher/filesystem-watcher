@@ -19,7 +19,7 @@ enum SingleFileScenario implements Scenario {
 
     FILE_CREATE(SingleFileScenario::createFile, WatchImplementation.all()),
     FILE_DELETE(SingleFileScenario::deleteFile, WatchImplementation.all()),
-    //FILE_MODIFY_CONTENT(SingleFileScenario::modifyFileContent, List.of(WatchImplementation.NATIVE)),
+    FILE_MODIFY_CONTENT(SingleFileScenario::modifyFileContent, List.of(WatchImplementation.NATIVE)),
     FILE_ADD_POSIX_PERMISSIONS(SingleFileScenario::addPermissions, List.of(WatchImplementation.NATIVE)),
     FILE_REMOVE_POSIX_PERMISSIONS(SingleFileScenario::removePermissions, List.of(WatchImplementation.NATIVE)),
     FILE_SET_SAME_PERMISSIONS(SingleFileScenario::setSamePermissions, List.of(WatchImplementation.NATIVE));
@@ -60,7 +60,6 @@ enum SingleFileScenario implements Scenario {
 
         return List.of(
                 FilesystemEvent.of(createdFile, INITIAL),
-                FilesystemEvent.of(createdFile, MODIFIED), //TODO Check why two?
                 FilesystemEvent.of(createdFile, MODIFIED)
         );
     }
