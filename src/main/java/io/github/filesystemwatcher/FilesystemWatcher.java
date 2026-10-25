@@ -1,6 +1,5 @@
 package io.github.filesystemwatcher;
 
-import com.sun.nio.file.SensitivityWatchEventModifier;
 import lombok.Builder;
 import lombok.Value;
 import lombok.experimental.NonFinal;
@@ -194,9 +193,21 @@ public class FilesystemWatcher implements FilesystemNotifier {
         }
     }
 
+    // SensitivityWatchEventModifier.HIGH shortens polling (e.g. on macOS) from 10 to 2 seconds before JDK 17.
+    // It is internal API, ignored since JDK 21 and deprecated for removal, so it is looked up only if present.
+    static WatchEvent.Modifier[] sensitivityModifiers() {
+        try {
+            Object high = Class.forName("com.sun.nio.file.SensitivityWatchEventModifier").getField("HIGH").get(null);
+            return new WatchEvent.Modifier[]{(WatchEvent.Modifier) high};
+        } catch (ReflectiveOperationException | ClassCastException e) {
+            return new WatchEvent.Modifier[0];
+        }
+    }
+
     @Value
     private static class WatchableUtility {
         private static final WatchEvent.Kind[] ALL_EVENT_KINDS = new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW};
+        private static final WatchEvent.Modifier[] MODIFIERS = sensitivityModifiers();
 
         private final WatchService watchService = createWatchService();
 
@@ -210,7 +221,7 @@ public class FilesystemWatcher implements FilesystemNotifier {
 
         private WatchKey registerWatchable(Watchable watchable) {
             try {
-                return watchable.register(watchService, ALL_EVENT_KINDS, SensitivityWatchEventModifier.HIGH);
+                return watchable.register(watchService, ALL_EVENT_KINDS, MODIFIERS);
             } catch (IOException e) {
                 throw new IllegalStateException("Cannot watch " + watchable, e);
             }

@@ -1,6 +1,5 @@
 package io.github.filesystemwatcher.utilities;
 
-import com.sun.nio.file.SensitivityWatchEventModifier;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -14,7 +13,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 public enum WatchImplementation {
-    POOLING(Duration.ofSeconds(SensitivityWatchEventModifier.HIGH.sensitivityValueInSeconds())),
+    POOLING(Duration.ofSeconds(2)),
     NATIVE(Duration.ofMillis(200));
 
     @Getter
