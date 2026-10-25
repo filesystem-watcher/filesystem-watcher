@@ -32,6 +32,14 @@ public enum WatchImplementation {
         }
     }
 
+    public static boolean detectsModificationsWithinSecond() {
+        return determineImplementation() == NATIVE || !isJava8();
+    }
+
+    private static boolean isJava8() {
+        return System.getProperty("java.specification.version").startsWith("1.");
+    }
+
     public static List<WatchImplementation> all() {
         return Arrays.asList(values());
     }

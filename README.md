@@ -37,6 +37,9 @@ monitor.stopWatching();
 Existing files are reported first as `INITIAL`, then changes as `CREATED`, `MODIFIED` and `DELETED`.
 Constraints are optional and can filter by file name, pattern or file type.
 
+On macOS with Java 8, file times have one-second precision, so a change made within the same second
+as the previous one may not be reported as `MODIFIED`. Java 10 and newer don't have this limit.
+
 ## Releasing
 
 Push a tag `vX.Y.Z`. GitHub Actions publishes version `X.Y.Z` to Maven Central.
