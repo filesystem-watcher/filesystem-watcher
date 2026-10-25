@@ -20,9 +20,9 @@ enum SingleDirectoryScenario implements Scenario {
     DIRECTORY_CREATE(SingleDirectoryScenario::create, WatchImplementation.all()),
     DIRECTORY_DELETE(SingleDirectoryScenario::delete, WatchImplementation.all()),
     DIRECTORY_RENAME(SingleDirectoryScenario::rename, WatchImplementation.all()),
-    DIRECTORY_ADD_POSIX_PERMISSIONS(SingleDirectoryScenario::addPermissions, Arrays.asList(WatchImplementation.NATIVE)),
-    DIRECTORY_REMOVE_POSIX_PERMISSIONS(SingleDirectoryScenario::removePermissions, Arrays.asList(WatchImplementation.NATIVE)),
-    DIRECTORY_SET_SAME_PERMISSIONS(SingleDirectoryScenario::setSamePermissions, Arrays.asList(WatchImplementation.NATIVE));
+    DIRECTORY_ADD_POSIX_PERMISSIONS(SingleDirectoryScenario::addPermissions, WatchImplementation.nativeWithPosixPermissions()),
+    DIRECTORY_REMOVE_POSIX_PERMISSIONS(SingleDirectoryScenario::removePermissions, WatchImplementation.nativeWithPosixPermissions()),
+    DIRECTORY_SET_SAME_PERMISSIONS(SingleDirectoryScenario::setSamePermissions, WatchImplementation.nativeWithPosixPermissions());
 
     private final Scenario scenario;
 

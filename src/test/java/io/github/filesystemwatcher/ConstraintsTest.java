@@ -88,7 +88,7 @@ class ConstraintsTest {
 	@ParameterizedTest
 	@MethodSource
 	void shouldFindProperFilesForCorrectConstraints(FilesystemConstraints constraints, List<Path> expectedPaths) {
-		List<FilesystemEvent> receivedEvents = new ArrayList<>();
+		List<FilesystemEvent> receivedEvents = Collections.synchronizedList(new ArrayList<>());
 
 		FilesystemMonitor monitor = FilesystemMonitor.builder()
 				.watchedPath(temporaryDirectory)
@@ -97,12 +97,23 @@ class ConstraintsTest {
 				.build();
 
 		monitor.startWatching();
+		try {
+			List<FilesystemEvent> expectedEvents = expectedPaths.stream()
+					.map(path -> FilesystemEvent.of(path, FilesystemEventType.INITIAL))
+					.collect(Collectors.toList());
+			expectedEvents.forEach(event -> AwaitilityUtils.awaitForElement(receivedEvents, event));
+			Assertions.assertThat(initialEvents(receivedEvents)).containsExactlyInAnyOrderElementsOf(expectedEvents);
+		} finally {
+			monitor.stopWatching();
+		}
+	}
 
-		List<FilesystemEvent> expectedEvents = expectedPaths.stream()
-				.map(path -> FilesystemEvent.of(path, FilesystemEventType.INITIAL))
-				.collect(Collectors.toList());
-		AwaitilityUtils.awaitForSize(receivedEvents, expectedEvents.size());
-		Assertions.assertThat(receivedEvents).containsExactlyInAnyOrderElementsOf(expectedEvents);
+	private static List<FilesystemEvent> initialEvents(List<FilesystemEvent> events) {
+		synchronized (events) {
+			return events.stream()
+					.filter(event -> event.getEventType() == FilesystemEventType.INITIAL)
+					.collect(Collectors.toList());
+		}
 	}
 
 	private static Stream<Arguments> shouldFindProperFilesForCorrectConstraints() {

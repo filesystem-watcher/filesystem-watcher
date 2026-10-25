@@ -9,6 +9,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.WatchService;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -30,6 +31,15 @@ public enum WatchImplementation {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public static List<WatchImplementation> nativeWithPosixPermissions() {
+        boolean posixPermissions = FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
+        return posixPermissions ? Collections.singletonList(NATIVE) : Collections.emptyList();
+    }
+
+    public static boolean reportsDirectoryContentChangesAsModifications() {
+        return System.getProperty("os.name").startsWith("Windows");
     }
 
     public static boolean detectsModificationsWithinSecond() {

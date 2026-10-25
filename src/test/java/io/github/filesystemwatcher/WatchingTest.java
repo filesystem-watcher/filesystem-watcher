@@ -9,6 +9,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,19 +46,24 @@ class WatchingTest {
         coordinator.watcherCompleted();
 
         //then
-        List<FilesystemEvent> filesystemEvents = withoutUndetectableModifications(futureEvents.get());
+        List<FilesystemEvent> filesystemEvents = withoutPlatformDependentModifications(futureEvents.get());
         filesystemEvents.forEach(event -> AwaitilityUtils.awaitForElement(receivedEvents, event));
-        Assertions.assertThat(withoutUndetectableModifications(withoutRepeatedModifications(receivedEvents)))
+        Assertions.assertThat(withoutPlatformDependentModifications(withoutRepeatedModifications(receivedEvents)))
                 .containsExactlyInAnyOrderElementsOf(filesystemEvents);
     }
 
-    private static List<FilesystemEvent> withoutUndetectableModifications(List<FilesystemEvent> events) {
-        if (WatchImplementation.detectsModificationsWithinSecond()) {
-            return events;
-        }
+    private static List<FilesystemEvent> withoutPlatformDependentModifications(List<FilesystemEvent> events) {
         return events.stream()
-                .filter(event -> event.getEventType() != MODIFIED)
+                .filter(event -> !isPlatformDependentModification(event))
                 .collect(Collectors.toList());
+    }
+
+    private static boolean isPlatformDependentModification(FilesystemEvent event) {
+        if (event.getEventType() != MODIFIED) {
+            return false;
+        }
+        return !WatchImplementation.detectsModificationsWithinSecond()
+                || WatchImplementation.reportsDirectoryContentChangesAsModifications() && Files.isDirectory(event.getPath());
     }
 
     // One write can be reported as one or more modifications, depending on timing.

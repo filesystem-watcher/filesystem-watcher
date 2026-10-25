@@ -20,9 +20,9 @@ enum SymlinkDirectoryScenario implements Scenario {
     SYMLINK_DIRECTORY_CREATE(SymlinkDirectoryScenario::create, WatchImplementation.all()),
     SYMLINK_DIRECTORY_DELETE(SymlinkDirectoryScenario::delete, WatchImplementation.all()),
     SYMLINK_DIRECTORY_RENAME(SymlinkDirectoryScenario::rename, WatchImplementation.all()),
-    SYMLINK_DIRECTORY_ADD_POSIX_PERMISSIONS(SymlinkDirectoryScenario::addPermissions, Arrays.asList(WatchImplementation.NATIVE)),
-    SYMLINK_DIRECTORY_REMOVE_POSIX_PERMISSIONS(SymlinkDirectoryScenario::removePermissions, Arrays.asList(WatchImplementation.NATIVE)),
-    SYMLINK_DIRECTORY_SET_SAME_PERMISSIONS(SymlinkDirectoryScenario::setSamePermissions, Arrays.asList(WatchImplementation.NATIVE));
+    SYMLINK_DIRECTORY_ADD_POSIX_PERMISSIONS(SymlinkDirectoryScenario::addPermissions, WatchImplementation.nativeWithPosixPermissions()),
+    SYMLINK_DIRECTORY_REMOVE_POSIX_PERMISSIONS(SymlinkDirectoryScenario::removePermissions, WatchImplementation.nativeWithPosixPermissions()),
+    SYMLINK_DIRECTORY_SET_SAME_PERMISSIONS(SymlinkDirectoryScenario::setSamePermissions, WatchImplementation.nativeWithPosixPermissions());
 
     private final Scenario scenario;
     @Getter

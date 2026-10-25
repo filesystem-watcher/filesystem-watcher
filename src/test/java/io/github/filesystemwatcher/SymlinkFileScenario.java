@@ -20,9 +20,9 @@ enum SymlinkFileScenario implements Scenario {
     SYMLINK_FILE_CREATE(SymlinkFileScenario::create, WatchImplementation.all()),
     SYMLINK_FILE_DELETE(SymlinkFileScenario::delete, WatchImplementation.all()),
     SYMLINK_FILE_MODIFY_CONTENT(SymlinkFileScenario::modifyContent, WatchImplementation.all()),
-    SYMLINK_FILE_ADD_POSIX_PERMISSIONS(SymlinkFileScenario::addPermissions, Arrays.asList(WatchImplementation.NATIVE)),
-    SYMLINK_FILE_REMOVE_POSIX_PERMISSIONS(SymlinkFileScenario::removePermissions, Arrays.asList(WatchImplementation.NATIVE)),
-    SYMLINK_FILE_SET_SAME_PERMISSIONS(SymlinkFileScenario::setSamePermissions, Arrays.asList(WatchImplementation.NATIVE));
+    SYMLINK_FILE_ADD_POSIX_PERMISSIONS(SymlinkFileScenario::addPermissions, WatchImplementation.nativeWithPosixPermissions()),
+    SYMLINK_FILE_REMOVE_POSIX_PERMISSIONS(SymlinkFileScenario::removePermissions, WatchImplementation.nativeWithPosixPermissions()),
+    SYMLINK_FILE_SET_SAME_PERMISSIONS(SymlinkFileScenario::setSamePermissions, WatchImplementation.nativeWithPosixPermissions());
 
     private final Scenario scenario;
     @Getter

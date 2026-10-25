@@ -53,4 +53,20 @@ class CreatedDirectoryTest extends AbstractMonitorTest {
                 .filteredOn(event -> event.getEventType() == CREATED)
                 .doesNotHaveDuplicates();
     }
+
+    @Test
+    void shouldWatchRenamedDirectoryUnderItsNewName(@TempDir Path directory) {
+        //given
+        Path original = FilesystemUtils.createDirectory(directory, "original");
+        List<FilesystemEvent> receivedEvents = Collections.synchronizedList(new ArrayList<>());
+        startMonitor(directory, RECURSIVE, receivedEvents::add);
+
+        //when
+        Path renamed = FilesystemUtils.move(original, directory.resolve("renamed"));
+        AwaitilityUtils.awaitForElement(receivedEvents, FilesystemEvent.of(renamed, CREATED));
+        Path file = FilesystemUtils.createFile(renamed, "file.txt");
+
+        //then
+        AwaitilityUtils.awaitForElement(receivedEvents, FilesystemEvent.of(file, CREATED));
+    }
 }

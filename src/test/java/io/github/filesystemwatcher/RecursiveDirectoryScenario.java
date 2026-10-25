@@ -21,9 +21,9 @@ enum RecursiveDirectoryScenario implements Scenario {
     RECURSIVE_DIRECTORY_CREATE(RecursiveDirectoryScenario::create, WatchImplementation.all()),
     RECURSIVE_DIRECTORY_DELETE(RecursiveDirectoryScenario::delete, WatchImplementation.all()),
     RECURSIVE_DIRECTORY_RENAME(RecursiveDirectoryScenario::rename, WatchImplementation.all()),
-    RECURSIVE_DIRECTORY_ADD_POSIX_PERMISSIONS(RecursiveDirectoryScenario::addPermissions, Arrays.asList(WatchImplementation.NATIVE)),
-    RECURSIVE_DIRECTORY_REMOVE_POSIX_PERMISSIONS(RecursiveDirectoryScenario::removePermissions, Arrays.asList(WatchImplementation.NATIVE)),
-    RECURSIVE_DIRECTORY_SET_SAME_PERMISSIONS(RecursiveDirectoryScenario::setSamePermissions, Arrays.asList(WatchImplementation.NATIVE));
+    RECURSIVE_DIRECTORY_ADD_POSIX_PERMISSIONS(RecursiveDirectoryScenario::addPermissions, WatchImplementation.nativeWithPosixPermissions()),
+    RECURSIVE_DIRECTORY_REMOVE_POSIX_PERMISSIONS(RecursiveDirectoryScenario::removePermissions, WatchImplementation.nativeWithPosixPermissions()),
+    RECURSIVE_DIRECTORY_SET_SAME_PERMISSIONS(RecursiveDirectoryScenario::setSamePermissions, WatchImplementation.nativeWithPosixPermissions());
 
     private final Scenario scenario;
     @Getter
