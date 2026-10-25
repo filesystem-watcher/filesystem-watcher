@@ -29,9 +29,9 @@ public class FilesystemReader implements FilesystemNotifier {
     public void startWatching() {
         ConstraintsFilteringVisitor visitor = new ConstraintsFilteringVisitor(watchedPath, watchedConstraints);
         try {
-            log.info("Reading started path={}", watchedPath);
+            log.debug("Reading started path={}", watchedPath);
             Files.walkFileTree(watchedPath, visitor);
-            log.info("Reading completed path={}", watchedPath);
+            log.debug("Reading completed path={}", watchedPath);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -82,7 +82,7 @@ public class FilesystemReader implements FilesystemNotifier {
 
             if (constraints.test(filesystemEvent)) {
                 events.add(filesystemEvent);
-                log.info("Created event: {}", filesystemEvent);
+                log.debug("Created event: {}", filesystemEvent);
             }
         }
     }

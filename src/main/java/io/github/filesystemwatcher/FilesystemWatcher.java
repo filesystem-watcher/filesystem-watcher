@@ -1,7 +1,6 @@
 package io.github.filesystemwatcher;
 
 import com.sun.nio.file.SensitivityWatchEventModifier;
-import io.vavr.control.Try;
 import lombok.Builder;
 import lombok.Value;
 import lombok.experimental.NonFinal;
@@ -19,7 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -70,7 +68,7 @@ public class FilesystemWatcher implements FilesystemNotifier {
     void startWatching(Path path) {
         WatchKey key = watchableUtility.registerWatchable(path);
         watchedKeys.putIfAbsent(path, key);
-        log.info("Watching started: {}", path);
+        log.debug("Watching started: {}", path);
     }
 
     private void stopWatching(Path path) {
@@ -79,7 +77,7 @@ public class FilesystemWatcher implements FilesystemNotifier {
             key.cancel();
         }
         watchedKeys.remove(path);
-        log.info("Watching stopped: {}", path);
+        log.debug("Watching stopped: {}", path);
     }
 
     private void produceEvents() {
@@ -105,7 +103,7 @@ public class FilesystemWatcher implements FilesystemNotifier {
     }
 
     private void produceKeyEvents(WatchKey watchedKey) throws InterruptedException {
-        log.info("Watched key: {}", watchedKey.watchable());
+        log.debug("Watched key: {}", watchedKey.watchable());
 
         Path watchedDirectory = (Path) watchedKey.watchable();
         for (WatchEvent<?> watchEvent : watchedKey.pollEvents()) {
@@ -113,7 +111,7 @@ public class FilesystemWatcher implements FilesystemNotifier {
                 return;
             }
 
-            log.info("Watched event: {} {}", watchEvent.kind(), watchEvent.context());
+            log.debug("Watched event: {} {}", watchEvent.kind(), watchEvent.context());
 
             if (watchEvent.kind() == OVERFLOW) {
                 log.error("OVERFLOW watchEvent occurred {} times. Operating system queue was overflowed. File events could be lost.", watchEvent.count());
@@ -148,7 +146,7 @@ public class FilesystemWatcher implements FilesystemNotifier {
 
     private void consumeEvent(FilesystemEvent event) {
         Path path = event.getPath();
-        log.info("Consumed event: " + event);
+        log.debug("Consumed event: {}", event);
 
         if (CREATED == event.getEventType()) {
             if (!listedPaths.remove(path)) {
@@ -198,22 +196,32 @@ public class FilesystemWatcher implements FilesystemNotifier {
 
     @Value
     private static class WatchableUtility {
-        private static final Supplier<IllegalStateException> EXCEPTION_SUPPLIER = IllegalStateException::new;
         private static final WatchEvent.Kind[] ALL_EVENT_KINDS = new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW};
 
         private final WatchService watchService = createWatchService();
 
         private WatchService createWatchService() {
-            FileSystem fileSystem = FileSystems.getDefault();
-            return Try.of(fileSystem::newWatchService).getOrElseThrow(EXCEPTION_SUPPLIER);
+            try {
+                return FileSystems.getDefault().newWatchService();
+            } catch (IOException e) {
+                throw new IllegalStateException("Cannot create watch service", e);
+            }
         }
 
         private WatchKey registerWatchable(Watchable watchable) {
-            return Try.of(() -> watchable.register(watchService, ALL_EVENT_KINDS, SensitivityWatchEventModifier.HIGH)).getOrElseThrow(EXCEPTION_SUPPLIER);
+            try {
+                return watchable.register(watchService, ALL_EVENT_KINDS, SensitivityWatchEventModifier.HIGH);
+            } catch (IOException e) {
+                throw new IllegalStateException("Cannot watch " + watchable, e);
+            }
         }
 
         void closeWatchService() {
-            Try.run(watchService::close).getOrElseThrow(EXCEPTION_SUPPLIER);
+            try {
+                watchService.close();
+            } catch (IOException e) {
+                throw new IllegalStateException("Cannot close watch service", e);
+            }
         }
     }
 }
