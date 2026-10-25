@@ -27,7 +27,7 @@ public class AwaitilityUtils {
     }
 
     private static void await(Supplier<String> description, Callable<Boolean> condition) {
-        ConditionEvaluationListener<Boolean> listener = new ConditionEvaluationListener<>() {
+        ConditionEvaluationListener<Boolean> listener = new ConditionEvaluationListener<Boolean>() {
             @Override
             public void conditionEvaluated(EvaluatedCondition condition) {
 

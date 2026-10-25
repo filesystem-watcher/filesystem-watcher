@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -20,7 +21,7 @@ class ResilienceTest extends AbstractMonitorTest {
     void shouldKeepWatchingDirectoryWhenFileDisappearsBeforeItsEventIsProcessed(@TempDir Path temporaryDirectory) {
         //given
         List<FilesystemEvent> receivedEvents = Collections.synchronizedList(new ArrayList<>());
-        startMonitor(temporaryDirectory, FilesystemConstraints.DEFAULT.withFileTypes(List.of(REGULAR)), receivedEvents::add);
+        startMonitor(temporaryDirectory, FilesystemConstraints.DEFAULT.withFileTypes(Arrays.asList(REGULAR)), receivedEvents::add);
 
         //when
         List<Path> transientFiles = new ArrayList<>();

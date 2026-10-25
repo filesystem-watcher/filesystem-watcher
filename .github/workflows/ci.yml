@@ -11,13 +11,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        java: [11, 21]
+        java: [8, 11, 21]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-java@v5
         with:
-          distribution: temurin
+          distribution: ${{ matrix.java == 8 && 'zulu' || 'temurin' }}
           java-version: ${{ matrix.java }}
           cache: maven
       - run: ./mvnw -B verify -P release -Dgpg.skip

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -19,9 +20,9 @@ enum SingleDirectoryScenario implements Scenario {
     DIRECTORY_CREATE(SingleDirectoryScenario::create, WatchImplementation.all()),
     DIRECTORY_DELETE(SingleDirectoryScenario::delete, WatchImplementation.all()),
     DIRECTORY_RENAME(SingleDirectoryScenario::rename, WatchImplementation.all()),
-    DIRECTORY_ADD_POSIX_PERMISSIONS(SingleDirectoryScenario::addPermissions, List.of(WatchImplementation.NATIVE)),
-    DIRECTORY_REMOVE_POSIX_PERMISSIONS(SingleDirectoryScenario::removePermissions, List.of(WatchImplementation.NATIVE)),
-    DIRECTORY_SET_SAME_PERMISSIONS(SingleDirectoryScenario::setSamePermissions, List.of(WatchImplementation.NATIVE));
+    DIRECTORY_ADD_POSIX_PERMISSIONS(SingleDirectoryScenario::addPermissions, Arrays.asList(WatchImplementation.NATIVE)),
+    DIRECTORY_REMOVE_POSIX_PERMISSIONS(SingleDirectoryScenario::removePermissions, Arrays.asList(WatchImplementation.NATIVE)),
+    DIRECTORY_SET_SAME_PERMISSIONS(SingleDirectoryScenario::setSamePermissions, Arrays.asList(WatchImplementation.NATIVE));
 
     private final Scenario scenario;
 
@@ -37,7 +38,7 @@ enum SingleDirectoryScenario implements Scenario {
         coordinator.setupCompleted();
 
         Path created = FilesystemUtils.createDirectory(base, "test");
-        return List.of(FilesystemEvent.of(created, CREATED));
+        return Arrays.asList(FilesystemEvent.of(created, CREATED));
     }
 
     private static List<FilesystemEvent> delete(Path base, WatchCoordinator coordinator) {
@@ -46,7 +47,7 @@ enum SingleDirectoryScenario implements Scenario {
         coordinator.setupCompleted();
 
         FilesystemUtils.delete(created);
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(created, INITIAL),
                 FilesystemEvent.of(created, DELETED)
         );
@@ -58,7 +59,7 @@ enum SingleDirectoryScenario implements Scenario {
 
         Path moved = FilesystemUtils.move(created, base.resolve("test2"));
 
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(created, INITIAL),
                 FilesystemEvent.of(created, DELETED),
                 FilesystemEvent.of(moved, CREATED)
@@ -72,7 +73,7 @@ enum SingleDirectoryScenario implements Scenario {
         Set<PosixFilePermission> permissions = FilesystemUtils.getPosixFilePermissions(created);
         permissions.add(PosixFilePermission.OTHERS_EXECUTE);
         FilesystemUtils.setPosixFilePermissions(created, permissions);
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(created, INITIAL),
                 FilesystemEvent.of(created, MODIFIED)
         );
@@ -89,7 +90,7 @@ enum SingleDirectoryScenario implements Scenario {
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Cannot remove POSIX attribute, because given path=%s have all them set to false", created)));
         permissions.remove(toRemove);
         FilesystemUtils.setPosixFilePermissions(created, permissions);
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(created, INITIAL),
                 FilesystemEvent.of(created, MODIFIED)
         );
@@ -102,7 +103,7 @@ enum SingleDirectoryScenario implements Scenario {
         Set<PosixFilePermission> permissions = FilesystemUtils.getPosixFilePermissions(created);
         FilesystemUtils.setPosixFilePermissions(created, permissions);
 
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(created, INITIAL),
                 FilesystemEvent.of(created, MODIFIED)
         );

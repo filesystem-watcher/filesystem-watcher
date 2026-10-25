@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -19,9 +20,9 @@ enum SymlinkDirectoryScenario implements Scenario {
     SYMLINK_DIRECTORY_CREATE(SymlinkDirectoryScenario::create, WatchImplementation.all()),
     SYMLINK_DIRECTORY_DELETE(SymlinkDirectoryScenario::delete, WatchImplementation.all()),
     SYMLINK_DIRECTORY_RENAME(SymlinkDirectoryScenario::rename, WatchImplementation.all()),
-    SYMLINK_DIRECTORY_ADD_POSIX_PERMISSIONS(SymlinkDirectoryScenario::addPermissions, List.of(WatchImplementation.NATIVE)),
-    SYMLINK_DIRECTORY_REMOVE_POSIX_PERMISSIONS(SymlinkDirectoryScenario::removePermissions, List.of(WatchImplementation.NATIVE)),
-    SYMLINK_DIRECTORY_SET_SAME_PERMISSIONS(SymlinkDirectoryScenario::setSamePermissions, List.of(WatchImplementation.NATIVE));
+    SYMLINK_DIRECTORY_ADD_POSIX_PERMISSIONS(SymlinkDirectoryScenario::addPermissions, Arrays.asList(WatchImplementation.NATIVE)),
+    SYMLINK_DIRECTORY_REMOVE_POSIX_PERMISSIONS(SymlinkDirectoryScenario::removePermissions, Arrays.asList(WatchImplementation.NATIVE)),
+    SYMLINK_DIRECTORY_SET_SAME_PERMISSIONS(SymlinkDirectoryScenario::setSamePermissions, Arrays.asList(WatchImplementation.NATIVE));
 
     private final Scenario scenario;
     @Getter
@@ -39,7 +40,7 @@ enum SymlinkDirectoryScenario implements Scenario {
         coordinator.setupCompleted();
 
         Path createdDirectory = FilesystemUtils.createFile(base, "test");
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(symlink, INITIAL),
                 FilesystemEvent.of(createdDirectory, CREATED)
         );
@@ -51,7 +52,7 @@ enum SymlinkDirectoryScenario implements Scenario {
         coordinator.setupCompleted();
 
         FilesystemUtils.delete(created);
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(created, INITIAL),
                 FilesystemEvent.of(created, DELETED)
         );
@@ -63,7 +64,7 @@ enum SymlinkDirectoryScenario implements Scenario {
 
         Path moved = FilesystemUtils.move(created, base.resolve("test2"));
 
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(created, INITIAL),
                 FilesystemEvent.of(created, DELETED),
                 FilesystemEvent.of(moved, CREATED)
@@ -77,7 +78,7 @@ enum SymlinkDirectoryScenario implements Scenario {
         Set<PosixFilePermission> permissions = FilesystemUtils.getPosixFilePermissions(created);
         permissions.add(PosixFilePermission.OTHERS_EXECUTE);
         FilesystemUtils.setPosixFilePermissions(created, permissions);
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(created, INITIAL),
                 FilesystemEvent.of(created, MODIFIED)
         );
@@ -94,7 +95,7 @@ enum SymlinkDirectoryScenario implements Scenario {
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Cannot remove POSIX attribute, because given path=%s have all them set to false", created)));
         permissions.remove(toRemove);
         FilesystemUtils.setPosixFilePermissions(created, permissions);
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(created, INITIAL),
                 FilesystemEvent.of(created, MODIFIED)
         );
@@ -107,7 +108,7 @@ enum SymlinkDirectoryScenario implements Scenario {
         Set<PosixFilePermission> permissions = FilesystemUtils.getPosixFilePermissions(created);
         FilesystemUtils.setPosixFilePermissions(created, permissions);
 
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(created, INITIAL),
                 FilesystemEvent.of(created, MODIFIED)
         );

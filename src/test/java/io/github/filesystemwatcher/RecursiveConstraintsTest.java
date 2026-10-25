@@ -9,6 +9,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +35,7 @@ class RecursiveConstraintsTest extends AbstractMonitorTest {
         Path createdDirectoryFile = FilesystemUtils.createFile(createdDirectory, "file.txt");
 
         //then
-        List<FilesystemEvent> expectedEvents = List.of(
+        List<FilesystemEvent> expectedEvents = Arrays.asList(
                 FilesystemEvent.of(existingDirectoryFile, CREATED),
                 FilesystemEvent.of(createdDirectoryFile, CREATED)
         );
@@ -44,8 +45,8 @@ class RecursiveConstraintsTest extends AbstractMonitorTest {
 
     static Stream<FilesystemConstraints> shouldWatchSubdirectoriesExcludedByConstraints() {
         return Stream.of(
-                FilesystemConstraints.DEFAULT.withRecursive(true).withFileTypes(List.of(REGULAR)),
-                FilesystemConstraints.DEFAULT.withRecursive(true).withFilenamePatterns(List.of(Pattern.compile(".*\\.txt")))
+                FilesystemConstraints.DEFAULT.withRecursive(true).withFileTypes(Arrays.asList(REGULAR)),
+                FilesystemConstraints.DEFAULT.withRecursive(true).withFilenamePatterns(Arrays.asList(Pattern.compile(".*\\.txt")))
         );
     }
 

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -19,9 +20,9 @@ enum SymlinkFileScenario implements Scenario {
     SYMLINK_FILE_CREATE(SymlinkFileScenario::create, WatchImplementation.all()),
     SYMLINK_FILE_DELETE(SymlinkFileScenario::delete, WatchImplementation.all()),
     SYMLINK_FILE_MODIFY_CONTENT(SymlinkFileScenario::modifyContent, WatchImplementation.all()),
-    SYMLINK_FILE_ADD_POSIX_PERMISSIONS(SymlinkFileScenario::addPermissions, List.of(WatchImplementation.NATIVE)),
-    SYMLINK_FILE_REMOVE_POSIX_PERMISSIONS(SymlinkFileScenario::removePermissions, List.of(WatchImplementation.NATIVE)),
-    SYMLINK_FILE_SET_SAME_PERMISSIONS(SymlinkFileScenario::setSamePermissions, List.of(WatchImplementation.NATIVE));
+    SYMLINK_FILE_ADD_POSIX_PERMISSIONS(SymlinkFileScenario::addPermissions, Arrays.asList(WatchImplementation.NATIVE)),
+    SYMLINK_FILE_REMOVE_POSIX_PERMISSIONS(SymlinkFileScenario::removePermissions, Arrays.asList(WatchImplementation.NATIVE)),
+    SYMLINK_FILE_SET_SAME_PERMISSIONS(SymlinkFileScenario::setSamePermissions, Arrays.asList(WatchImplementation.NATIVE));
 
     private final Scenario scenario;
     @Getter
@@ -38,7 +39,7 @@ enum SymlinkFileScenario implements Scenario {
         coordinator.setupCompleted();
 
         Path created = FilesystemUtils.createFile(base, "test.txt");
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(symlink, INITIAL),
                 FilesystemEvent.of(created, CREATED)
         );
@@ -50,7 +51,7 @@ enum SymlinkFileScenario implements Scenario {
         coordinator.setupCompleted();
 
         FilesystemUtils.delete(created);
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(symlink, INITIAL),
                 FilesystemEvent.of(created, INITIAL),
                 FilesystemEvent.of(created, DELETED)
@@ -64,7 +65,7 @@ enum SymlinkFileScenario implements Scenario {
 
         FilesystemUtils.writeFile(symlink, "Hello");
 
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(created, INITIAL),
                 FilesystemEvent.of(symlink, INITIAL),
                 FilesystemEvent.of(created, MODIFIED)
@@ -79,7 +80,7 @@ enum SymlinkFileScenario implements Scenario {
         Set<PosixFilePermission> permissions = FilesystemUtils.getPosixFilePermissions(created);
         permissions.add(PosixFilePermission.OTHERS_EXECUTE);
         FilesystemUtils.setPosixFilePermissions(created, permissions);
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(created, INITIAL),
                 FilesystemEvent.of(symlink, INITIAL),
                 FilesystemEvent.of(created, MODIFIED)
@@ -98,7 +99,7 @@ enum SymlinkFileScenario implements Scenario {
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Cannot remove POSIX attribute, because given path=%s have all them set to false", created)));
         permissions.remove(toRemove);
         FilesystemUtils.setPosixFilePermissions(created, permissions);
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(created, INITIAL),
                 FilesystemEvent.of(symlink, INITIAL),
                 FilesystemEvent.of(created, MODIFIED)
@@ -113,7 +114,7 @@ enum SymlinkFileScenario implements Scenario {
         Set<PosixFilePermission> permissions = FilesystemUtils.getPosixFilePermissions(created);
         FilesystemUtils.setPosixFilePermissions(created, permissions);
 
-        return List.of(
+        return Arrays.asList(
                 FilesystemEvent.of(created, INITIAL),
                 FilesystemEvent.of(symlink, INITIAL),
                 FilesystemEvent.of(created, MODIFIED)
